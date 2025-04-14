@@ -1,46 +1,290 @@
-
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>유튜브 핸들 → 채널 ID 변환기</title>
-  <style>
-    body { font-family: Arial, sans-serif; background-color: #121212; color: white; text-align: center; padding: 50px; }
-    input, button { padding: 10px; font-size: 1rem; }
-    input { width: 400px; border-radius: 5px; border: none; margin-bottom: 20px; }
-    button { background: #ffa500; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-    .output { margin-top: 30px; font-size: 1.1rem; color: #00ffcc; }
-  </style>
+<meta charset="UTF-8">
+<title>Basketball Stats Analyzer</title>
+<style>
+body {
+  background: #121212;
+  color: #FFF;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+h2, .tabs { text-align: center; }
+h2 { color: #FFA500; }
+.tabs button {
+  background: #282828;
+  color: #FFF;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  margin: 0 5px;
+}
+.tabs button.active { background: #FFA500; }
+.tab-content { display: none; flex: 1; overflow: auto; }
+.tab-content.active { display: block; }
+table { border-collapse: collapse; white-space: nowrap; min-width: 1500px; }
+thead th { background: #282828; position: sticky; top: 0; cursor: pointer; z-index: 200; }
+tbody td { background: #181818; }
+th, td { padding: 6px 8px; border-bottom: 1px solid #333; font-size: 0.85rem; text-align: center; }
+th:nth-child(1), td:nth-child(1),
+th:nth-child(2), td:nth-child(2) {
+  position: sticky;
+  left: 0;
+  background-color: #282828;
+  z-index: 300;
+}
+th:nth-child(2), td:nth-child(2) { left: 150px; }
+.valid { color: #55FF55; }
+.warning { color: #FF5555; }
+.highlight { border-bottom: 3px solid #FFA500 !important; }
+.footer {
+  padding: 10px 0;
+  border-top: 1px solid #333;
+  font-size: 0.8rem;
+  color: #888;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  pointer-events: none;
+}
+.footer img { width: 100px; height: auto; margin-bottom: 5px; }
+.scroll-container::-webkit-scrollbar { height: 8px; width: 8px; }
+.scroll-container::-webkit-scrollbar-track { background: #282828; }
+.scroll-container::-webkit-scrollbar-thumb { background: #FFA500; border-radius: 10px; }
+.highlight, .highlight td, .highlight span { color: #FFFF55 !important; font-weight: bold; }
+.input-box {
+  margin: 20px 0; /* 검색창 위아래 여백 넉넉히 추가 */
+}
+
+#playerSearch {
+  width: 250px; /* 검색창 길이를 길게 설정 */
+  height: 30px; /* 높이를 키워 가독성 향상 */
+  padding: 5px 10px; /* 내부 패딩 추가로 여유롭게 */
+  font-size: 1rem; /* 폰트 사이즈 확대 */
+  border-radius: 5px; /* 모서리를 둥글게 처리 */
+  border: none; /* 테두리 없애고 깔끔하게 */
+}
+
+.input-box button {
+  height: 42px; /* 버튼 높이를 검색창과 동일하게 맞춤 */
+  padding: 5px 15px; /* 좌우 여백 적절히 추가 */
+  font-size: 1rem; /* 버튼 글씨 사이즈 확대 */
+  cursor: pointer; /* 커서를 포인터로 명확히 표시 */
+  border-radius: 5px; /* 모서리 둥글게 처리 */
+  background-color: #FFA500; /* 버튼 배경색 강조 */
+  color: #121212; /* 버튼 글씨 색상 선명하게 변경 */
+  border: none; /* 버튼 테두리 제거 */
+}
+
+.input-box label {
+  font-size: 0.9rem; /* 체크박스 라벨 글씨 크기 약간 확대 */
+  vertical-align: middle; /* 체크박스와 세로 정렬 */
+}
+
+
+</style>
 </head>
 <body>
-  <h1>YouTube @핸들 → 채널 ID 변환기</h1>
-  <input id="handleInput" type="text" placeholder="@유튜브핸들 입력" />
-  <br>
-  <button onclick="convertHandle()">변환하기</button>
-  <div class="output" id="result"></div>
+<div class="container">
+  <h2>Basketball Stats Analyzer</h2>
+  <div class="tabs">
+    <button class="tab-button active" data-tab="tab-all">전체 선수 통계</button>
+    <button class="tab-button" data-tab="tab-player">선수 개인 검색</button>
+    <button class="tab-button" data-tab="tab-compare">선수 비교</button>
+  </div>
 
-  <script>
-    async function convertHandle() {
-      const input = document.getElementById("handleInput").value.trim();
-      const handle = input.includes("@") ? input.split("@")[1].split("/")[0] : input;
+  <div id="tab-all" class="tab-content active">
+<div class="input-box" style="text-align:center;">
+  <input type="text" id="playerSearch" placeholder="Search player..." />
+  <button onclick="searchPlayer()">Search</button>
+  <label style="color:#FFA500; margin-left:15px;">
+    <input type="checkbox" id="minGamesCheckbox"> 규정경기 이상만 표시 (14G)
+  </label>
+</div>
+    <div style="overflow-x:auto; overflow-y:hidden; background:#282828;" onscroll="document.querySelector('.scroll-container').scrollLeft=this.scrollLeft;">
+      <div id="scroll-sync" style="height:1px;"></div>
+    </div>
+    <div class="scroll-container" onscroll="document.querySelector('[style*=overflow-x]').scrollLeft=this.scrollLeft;">
+      <table id="statsTable">
+        <thead>
+          <tr>
+            <th>선수 이름</th><th>팀</th><th>경기수(G)</th><th>출전시간</th>
+            <th>PTS(총득점)</th><th>PTS_avg</th><th>FG</th><th>FGA</th><th>FG%</th>
+            <th>2P</th><th>2PA</th><th>2P%</th><th>3P</th><th>3PA</th><th>3P%</th>
+            <th>FT</th><th>FTA</th><th>FT%</th><th>ORB</th><th>DRB</th><th>TRB</th>
+            <th>TRB_avg</th><th>AST</th><th>AST_avg</th><th>STL</th><th>STL_avg</th>
+            <th>BLK</th><th>BLK_avg</th><th>TO</th><th>PF</th><th>WS</th><th>OWS</th>
+            <th>DWS</th><th>PER</th><th>TS%</th><th>eFG%</th><th>USG%</th>
+            <th>Off Rating</th><th>Def Rating</th><th>Eff/Game</th><th>Eff/40min</th>
+            <th>ORB%</th><th>DRB%</th><th>AST%</th><th>STL%</th><th>BLK%</th><th>TOV%</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <footer class="footer">
+      <img src="https://github.com/dookie777/vibe-index/blob/main/Logo_white.png?raw=true">
+      <div>© 2025 The Eroom Sports. All rights reserved.</div>
+    </footer>
+  </div>
+  <div id="tab-player" class="tab-content"><p>선수 개인 검색 페이지</p></div>
+  <div id="tab-compare" class="tab-content"><p>선수 비교 페이지</p></div>
+</div>
+<script>
+const tabs=document.querySelectorAll('.tab-button'),contents=document.querySelectorAll('.tab-content');
+tabs.forEach(tab=>{tab.onclick=()=>{tabs.forEach(t=>t.classList.remove('active'));contents.forEach(c=>c.classList.remove('active'));document.getElementById(tab.dataset.tab).classList.add('active');tab.classList.add('active');};});
 
-      try {
-        const response = await fetch(`https://youtube-handle-server-sijinlee.vercel.app/resolve?handle=${handle}`);
-        const text = await response.text();
-        const match = text.match(/"channelId":"(UC[\w-]+)"/);
-        if (match && match[1]) {
-          const id = match[1];
-          document.getElementById("result").innerHTML = `
-            ✅ 채널 ID: <b>${id}</b><br><br>
-            🔗 주소: <a href="https://www.youtube.com/channel/${id}" target="_blank" style="color:yellow">https://www.youtube.com/channel/${id}</a>
-          `;
-        } else {
-          document.getElementById("result").innerText = "❌ 채널 ID를 찾을 수 없습니다.";
-        }
-      } catch (err) {
-        document.getElementById("result").innerText = "❌ 요청 중 오류 발생 (브라우저 보안 설정 또는 CORS 문제)";
-      }
+let originalData = [], highlightedPlayer = '', fixedRow = null;
+
+async function loadPlayersData() {
+  const res = await fetch('https://docs.google.com/spreadsheets/d/1ez03AkQt4A5HWmo3jRAV3DOyfKfCU4xiI7XCjLRjwnE/export?format=csv');
+  const rows = (await res.text()).split('\n').slice(1);
+  originalData = rows.map(row => row.split(',')).filter(cols => cols.length > 30);
+  originalData.forEach(cols => {
+    cols.push(parseInt(cols[4]) * 60 + parseInt(cols[5]));
+  });
+  renderTable(originalData);
+}
+
+function renderTable(data) {
+  const tableBody = document.getElementById('tableBody');
+  tableBody.innerHTML = '';
+
+  const minGamesOnly = document.getElementById('minGamesCheckbox').checked;
+  const filteredData = minGamesOnly ? data.filter(cols => parseInt(cols[3]) >= 14) : data;
+
+  filteredData.forEach(cols => {
+    const playerName = cols[2];
+    const status = cols[3] >= 14 ? '✅' : '⚠️';
+    const playtime = `${cols[4]}분 ${cols[5]}초`;
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${playerName} <span class="${cols[3] >= 20 ? 'valid' : 'warning'}">${status}</span></td>
+      <td>${cols[1]}</td>
+      <td>${cols[3]}</td>
+      <td data-time="${cols[cols.length - 1]}">${playtime}</td>
+      <td>${cols[6]}</td>
+      <td>${(+cols[7]).toFixed(2)}</td>
+      <td>${cols[8]}</td>
+      <td>${cols[9]}</td>
+      <td>${cols[10]}</td>
+      <td>${cols[11]}</td>
+      <td>${cols[12]}</td>
+      <td>${cols[13]}</td>
+      <td>${cols[14]}</td>
+      <td>${cols[15]}</td>
+      <td>${cols[16]}</td>
+      <td>${cols[17]}</td>
+      <td>${cols[18]}</td>
+      <td>${cols[19]}</td>
+      <td>${cols[20]}</td>
+      <td>${cols[21]}</td>
+      <td>${cols[22]}</td>
+      <td>${(+cols[23]).toFixed(2)}</td>
+      <td>${cols[24]}</td>
+      <td>${(+cols[25]).toFixed(2)}</td>
+      <td>${cols[26]}</td>
+      <td>${(+cols[27]).toFixed(2)}</td>
+      <td>${cols[28]}</td>
+      <td>${(+cols[29]).toFixed(2)}</td>
+      <td>${cols[30]}</td>
+      <td>${cols[31]}</td>
+      <td>${cols[32]}</td>
+      <td>${cols[33]}</td>
+      <td>${cols[34]}</td>
+      <td>${cols[35]}</td>
+      <td>${cols[36]}</td>
+      <td>${cols[37]}</td>
+      <td>${cols[38]}</td>
+      <td>${cols[39]}</td>
+      <td>${cols[40]}</td>
+      <td>${cols[41]}</td>
+      <td>${cols[42]}</td>
+      <td>${cols[43]}</td>
+      <td>${cols[44]}</td>
+      <td>${cols[45]}</td>
+      <td>${cols[46]}</td>
+      <td>${cols[47]}</td>
+      <td>${cols[48]}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+
+  setTimeout(() => {
+    const tableWidth = document.getElementById('statsTable').offsetWidth;
+    document.getElementById('scroll-sync').style.width = tableWidth + 'px';
+  }, 200);
+}
+
+function searchPlayer(){
+  const query = document.getElementById('playerSearch').value.toLowerCase().trim();
+  if (query === "") { 
+    clearFixedRow();
+    return;
+  }
+  const rows = document.querySelectorAll('#tableBody tr');
+  let found = false;
+  rows.forEach(row => {
+    const name = row.cells[0].textContent.toLowerCase();
+    row.classList.remove('highlight');
+    if (name.includes(query)){
+      found = true;
+      row.classList.add('highlight');
+      fixRow(row);
     }
-  </script>
+  });
+  if (!found) {
+    clearFixedRow();
+    alert("Player not found!");
+  }
+}
+
+function fixRow(row) {
+  clearFixedRow();
+  fixedRow = row.cloneNode(true);
+  fixedRow.style.position = 'sticky';
+  fixedRow.style.top = '34px';
+  fixedRow.style.backgroundColor = '#000000';
+  fixedRow.style.zIndex = '500';
+  const releaseBtn = document.createElement('button');
+  releaseBtn.textContent = '해제';
+  releaseBtn.style.marginLeft = '10px';
+  releaseBtn.onclick = clearFixedRow;
+  fixedRow.cells[0].appendChild(releaseBtn);
+  document.querySelector('#statsTable thead').after(fixedRow);
+}
+
+function clearFixedRow() {
+  if (fixedRow) fixedRow.remove();
+  fixedRow = null;
+}
+
+window.onload = loadPlayersData;
+
+document.getElementById('minGamesCheckbox').addEventListener('change', function() {
+  renderTable(originalData);
+});
+
+</script>
 </body>
 </html>
