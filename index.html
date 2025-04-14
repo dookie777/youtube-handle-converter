@@ -72,9 +72,15 @@ th:nth-child(2), td:nth-child(2) { left: 150px; }
   pointer-events: none;
 }
 .footer img { width: 100px; height: auto; margin-bottom: 5px; }
-.scroll-container::-webkit-scrollbar { height: 8px; width: 8px; }
-.scroll-container::-webkit-scrollbar-track { background: #282828; }
-.scroll-container::-webkit-scrollbar-thumb { background: #FFA500; border-radius: 10px; }
+.scroll-container::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+.scroll-container::-webkit-scrollbar-track {
+  background: #282828;
+}
+.scroll-container::-webkit-scrollbar-thumb {
+  background: #555; /* 회색으로 설정 */
+  border-radius: 10px;
 .highlight, .highlight td, .highlight span { color: #FFFF55 !important; font-weight: bold; }
 .input-box {
   margin: 20px 0; 
@@ -97,14 +103,14 @@ th:nth-child(2), td:nth-child(2) { left: 150px; }
   font-weight: bold; /* 볼드체 처리 */
   cursor: pointer;
   border-radius: 5px;
-  background-color: #87CEFA; /* 밝은 하늘색 */
-  color: #121212;
+  background-color: #AAA; /* 연한 회색 */
+  color: #121212; 
   border: none;
 }
 
 .input-box label {
   font-size: 0.9rem;
-  color: #FFF; /* 글자 색깔 흰색으로 변경 */
+  color: #FFFFFF; 
   margin-left: 15px;
 }
 .scroll-container::-webkit-scrollbar-thumb { 
@@ -129,7 +135,16 @@ thead th:nth-child(2) {
   background-color: #000 !important;
   z-index: 500 !important;
 }
+/* 스크롤바 색상 및 스타일 재설정, 튀어나온 상단 가로스크롤 제거 */
+.scroll-container {
+  overflow: auto;
+  height: calc(100% - 180px);
+}
 
+/* 가로 스크롤바 활성화 유지 및 상단 가로스크롤 제거 */
+div[style*="overflow-x:auto"] {
+  overflow-x: hidden !important; /* 상단 튀어나온 가로스크롤 제거 */
+}
 </style>
 </head>
 <body>
