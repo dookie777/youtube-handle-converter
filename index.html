@@ -99,6 +99,103 @@ th:nth-child(2), td:nth-child(2) { left: 150px; }
   font-size: 0.9rem; /* 체크박스 라벨 글씨 크기 약간 확대 */
   vertical-align: middle; /* 체크박스와 세로 정렬 */
 }
+.scroll-container {
+  overflow: auto;
+  position: relative;
+  height: calc(100% - 180px);
+}
+
+thead th:nth-child(1), thead th:nth-child(2) {
+  position: sticky;
+  top: 0;
+  background-color: #282828;
+  z-index: 400;
+}
+
+thead th:nth-child(2) {
+  left: 150px;
+}
+
+.fixed-row {
+  position: sticky !important;
+  top: 34px !important;
+  background-color: #000 !important;
+  z-index: 500 !important;
+}
+const sortDirections = {};
+document.querySelectorAll('#statsTable th').forEach((header, index) => {
+  sortDirections[index] = 'asc';
+  header.onclick = () => sortTable(index);
+});
+
+function sortTable(i) {
+  const tableBody = document.getElementById('tableBody');
+  const rows = [...tableBody.rows];
+  const direction = sortDirections[i] === 'asc' ? 'desc' : 'asc';
+  sortDirections[i] = direction;
+
+  rows.sort((a, b) => {
+    let x, y;
+    if (i === 3) { // 출전시간 (초 단위)
+      x = parseInt(a.cells[i].getAttribute('data-time'), 10);
+      y = parseInt(b.cells[i].getAttribute('data-time'), 10);
+    } else {
+      x = parseFloat(a.cells[i].innerText) || 0;
+      y = parseFloat(b.cells[i].innerText) || 0;
+    }
+    return direction === 'asc' ? x - y : y - x;
+  }).forEach(row => tableBody.appendChild(row));
+
+  clearFixedRow();
+}
+
+function clearFixedRow() {
+  if (fixedRow) {
+    fixedRow.classList.remove('highlight');
+    fixedRow.remove();
+  }
+  fixedRow = null;
+}
+
+function fixRow(row) {
+  clearFixedRow();
+  fixedRow = row.cloneNode(true);
+  fixedRow.classList.add('fixed-row', 'highlight');
+
+  const releaseBtn = document.createElement('button');
+  releaseBtn.textContent = '해제';
+  releaseBtn.style.marginLeft = '10px';
+  releaseBtn.onclick = clearFixedRow;
+  
+  fixedRow.cells[0].appendChild(releaseBtn);
+  document.querySelector('#statsTable thead').after(fixedRow);
+}
+
+// 검색 결과 유지 개선
+function searchPlayer(){
+  const query = document.getElementById('playerSearch').value.toLowerCase().trim();
+  clearFixedRow();
+  const rows = document.querySelectorAll('#tableBody tr');
+  let found = false;
+  rows.forEach(row => {
+    const name = row.cells[0].textContent.toLowerCase();
+    row.classList.remove('highlight');
+    if (name.includes(query)){
+      found = true;
+      row.classList.add('highlight');
+      fixRow(row);
+    }
+  });
+  if (!found) alert(\"Player not found!\");
+}
+
+// 가로 스크롤 동기화
+document.querySelector('.scroll-container').addEventListener('scroll', function() {
+  document.querySelector('[style*=overflow-x]').scrollLeft = this.scrollLeft;
+});
+document.querySelector('[style*=overflow-x]').addEventListener('scroll', function() {
+  document.querySelector('.scroll-container').scrollLeft = this.scrollLeft;
+});
 
 
 </style>
