@@ -296,7 +296,7 @@ function fixRow(row) {
   releaseBtn.style.marginLeft = '10px';
   releaseBtn.onclick = () => {
     clearFixedRow();
-    document.getElementById('playerSearch').value = ""; // 해제 시 검색창도 깔끔히 비움
+    document.getElementById('playerSearch').value = "";
   };
   
   fixedRow.cells[0].appendChild(releaseBtn);
@@ -306,7 +306,7 @@ function fixRow(row) {
 function clearFixedRow() {
   if (fixedRow) {
     const originalRows = document.querySelectorAll('#tableBody tr');
-    originalRows.forEach(row => row.classList.remove('highlight')); // 원본 행에서 highlight 제거
+    originalRows.forEach(row => row.classList.remove('highlight'));
     fixedRow.remove();
   }
   fixedRow = null;
@@ -336,14 +336,9 @@ function sortTable(i) {
     return direction === 'asc' ? x - y : y - x;
   }).forEach(row => tableBody.appendChild(row));
 
-  // 정렬 후 검색 유지
   const currentSearch = document.getElementById('playerSearch').value.trim();
   if (currentSearch !== "") searchPlayer(); 
   else clearFixedRow(); 
-}
-
-
-  clearFixedRow();
 }
 
 window.onload = loadPlayersData;
@@ -352,6 +347,7 @@ document.getElementById('minGamesCheckbox').addEventListener('change', function(
   renderTable(originalData);
 });
 </script>
+
 
 </body>
 </html>
