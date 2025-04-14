@@ -122,81 +122,6 @@ thead th:nth-child(2) {
   background-color: #000 !important;
   z-index: 500 !important;
 }
-const sortDirections = {};
-document.querySelectorAll('#statsTable th').forEach((header, index) => {
-  sortDirections[index] = 'asc';
-  header.onclick = () => sortTable(index);
-});
-
-function sortTable(i) {
-  const tableBody = document.getElementById('tableBody');
-  const rows = [...tableBody.rows];
-  const direction = sortDirections[i] === 'asc' ? 'desc' : 'asc';
-  sortDirections[i] = direction;
-
-  rows.sort((a, b) => {
-    let x, y;
-    if (i === 3) { // 출전시간 (초 단위)
-      x = parseInt(a.cells[i].getAttribute('data-time'), 10);
-      y = parseInt(b.cells[i].getAttribute('data-time'), 10);
-    } else {
-      x = parseFloat(a.cells[i].innerText) || 0;
-      y = parseFloat(b.cells[i].innerText) || 0;
-    }
-    return direction === 'asc' ? x - y : y - x;
-  }).forEach(row => tableBody.appendChild(row));
-
-  clearFixedRow();
-}
-
-function clearFixedRow() {
-  if (fixedRow) {
-    fixedRow.classList.remove('highlight');
-    fixedRow.remove();
-  }
-  fixedRow = null;
-}
-
-function fixRow(row) {
-  clearFixedRow();
-  fixedRow = row.cloneNode(true);
-  fixedRow.classList.add('fixed-row', 'highlight');
-
-  const releaseBtn = document.createElement('button');
-  releaseBtn.textContent = '해제';
-  releaseBtn.style.marginLeft = '10px';
-  releaseBtn.onclick = clearFixedRow;
-  
-  fixedRow.cells[0].appendChild(releaseBtn);
-  document.querySelector('#statsTable thead').after(fixedRow);
-}
-
-// 검색 결과 유지 개선
-function searchPlayer(){
-  const query = document.getElementById('playerSearch').value.toLowerCase().trim();
-  clearFixedRow();
-  const rows = document.querySelectorAll('#tableBody tr');
-  let found = false;
-  rows.forEach(row => {
-    const name = row.cells[0].textContent.toLowerCase();
-    row.classList.remove('highlight');
-    if (name.includes(query)){
-      found = true;
-      row.classList.add('highlight');
-      fixRow(row);
-    }
-  });
-  if (!found) alert(\"Player not found!\");
-}
-
-// 가로 스크롤 동기화
-document.querySelector('.scroll-container').addEventListener('scroll', function() {
-  document.querySelector('[style*=overflow-x]').scrollLeft = this.scrollLeft;
-});
-document.querySelector('[style*=overflow-x]').addEventListener('scroll', function() {
-  document.querySelector('.scroll-container').scrollLeft = this.scrollLeft;
-});
-
 
 </style>
 </head>
@@ -217,9 +142,7 @@ document.querySelector('[style*=overflow-x]').addEventListener('scroll', functio
     <input type="checkbox" id="minGamesCheckbox"> 규정경기 이상만 표시 (14G)
   </label>
 </div>
-    <div style="overflow-x:auto; overflow-y:hidden; background:#282828;" onscroll="document.querySelector('.scroll-container').scrollLeft=this.scrollLeft;">
-      <div id="scroll-sync" style="height:1px;"></div>
-    </div>
+
     <div class="scroll-container" onscroll="document.querySelector('[style*=overflow-x]').scrollLeft=this.scrollLeft;">
       <table id="statsTable">
         <thead>
@@ -247,8 +170,17 @@ document.querySelector('[style*=overflow-x]').addEventListener('scroll', functio
   <div id="tab-compare" class="tab-content"><p>선수 비교 페이지</p></div>
 </div>
 <script>
-const tabs=document.querySelectorAll('.tab-button'),contents=document.querySelectorAll('.tab-content');
-tabs.forEach(tab=>{tab.onclick=()=>{tabs.forEach(t=>t.classList.remove('active'));contents.forEach(c=>c.classList.remove('active'));document.getElementById(tab.dataset.tab).classList.add('active');tab.classList.add('active');};});
+const tabs = document.querySelectorAll('.tab-button');
+const contents = document.querySelectorAll('.tab-content');
+
+tabs.forEach(tab => {
+  tab.onclick = () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+    document.getElementById(tab.dataset.tab).classList.add('active');
+    tab.classList.add('active');
+  };
+});
 
 let originalData = [], highlightedPlayer = '', fixedRow = null;
 
@@ -335,10 +267,7 @@ function renderTable(data) {
 
 function searchPlayer(){
   const query = document.getElementById('playerSearch').value.toLowerCase().trim();
-  if (query === "") { 
-    clearFixedRow();
-    return;
-  }
+  clearFixedRow();
   const rows = document.querySelectorAll('#tableBody tr');
   let found = false;
   rows.forEach(row => {
@@ -350,30 +279,59 @@ function searchPlayer(){
       fixRow(row);
     }
   });
-  if (!found) {
-    clearFixedRow();
-    alert("Player not found!");
-  }
+  if (!found) alert("Player not found!");
 }
 
 function fixRow(row) {
   clearFixedRow();
   fixedRow = row.cloneNode(true);
+  fixedRow.classList.add('fixed-row', 'highlight');
   fixedRow.style.position = 'sticky';
   fixedRow.style.top = '34px';
-  fixedRow.style.backgroundColor = '#000000';
+  fixedRow.style.backgroundColor = '#000';
   fixedRow.style.zIndex = '500';
+
   const releaseBtn = document.createElement('button');
   releaseBtn.textContent = '해제';
   releaseBtn.style.marginLeft = '10px';
   releaseBtn.onclick = clearFixedRow;
+  
   fixedRow.cells[0].appendChild(releaseBtn);
   document.querySelector('#statsTable thead').after(fixedRow);
 }
 
 function clearFixedRow() {
-  if (fixedRow) fixedRow.remove();
+  if (fixedRow) {
+    fixedRow.remove();
+  }
   fixedRow = null;
+}
+
+const sortDirections = {};
+document.querySelectorAll('#statsTable th').forEach((header, index) => {
+  sortDirections[index] = 'asc';
+  header.onclick = () => sortTable(index);
+});
+
+function sortTable(i) {
+  const tableBody = document.getElementById('tableBody');
+  const rows = [...tableBody.rows];
+  const direction = sortDirections[i] === 'asc' ? 'desc' : 'asc';
+  sortDirections[i] = direction;
+
+  rows.sort((a, b) => {
+    let x, y;
+    if (i === 3) {
+      x = parseInt(a.cells[i].getAttribute('data-time'), 10);
+      y = parseInt(b.cells[i].getAttribute('data-time'), 10);
+    } else {
+      x = parseFloat(a.cells[i].innerText) || 0;
+      y = parseFloat(b.cells[i].innerText) || 0;
+    }
+    return direction === 'asc' ? x - y : y - x;
+  }).forEach(row => tableBody.appendChild(row));
+
+  clearFixedRow();
 }
 
 window.onload = loadPlayersData;
@@ -381,7 +339,7 @@ window.onload = loadPlayersData;
 document.getElementById('minGamesCheckbox').addEventListener('change', function() {
   renderTable(originalData);
 });
-
 </script>
+
 </body>
 </html>
